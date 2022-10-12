@@ -1,0 +1,10 @@
+[project]
+name='aws-utils'
+version='0.1'
+dependencies = [
+    'Click',
+    'simple_term_menu',
+    'urwid',
+]
+[project.scripts]
+aws-ui = "aws_ui:main"
