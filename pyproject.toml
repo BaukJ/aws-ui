@@ -2,8 +2,8 @@
 name='aws-utils'
 version='0.1'
 dependencies = [
-    'Click',
-    'simple_term_menu',
+    #'Click',  # Will need to add this in once we setup command-line options
+    'boto3',
     'urwid',
 ]
 [project.scripts]
