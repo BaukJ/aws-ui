@@ -105,11 +105,10 @@ class App(object):
         self.menu = Menu({
             "Resources": {
                 "Instances": aws_ui.views.InstanceListView,
+                "Volumes": aws_ui.views.VolumeListView,
+                "Snapshots": aws_ui.views.SnapshotListView,
                 "Autoscaling Groups": aws_ui.views.ASGListView,
             },
-            "Instances": aws_ui.views.InstanceListView,
-            "Volumes": aws_ui.views.VolumeListView,
-            "Snapshots": aws_ui.views.SnapshotListView,
         })
         frame = self.menu
         self.loop = u.MainLoop(frame, self.palette, unhandled_input=self.unhandled_input)
@@ -124,6 +123,3 @@ class App(object):
 def main():
     app = App()
     app.start()
-
-if __name__ == '__main__':
-    main()

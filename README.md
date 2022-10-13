@@ -72,8 +72,17 @@ pip install .
 ## Usage
 
 ```
+# If you run this from within this repo you will run the local code, if you run it outside you will run the code installed with: pip install .
 aws-ui
 ```
+
+### Shortcuts
+
+These shortcuts only work when not in an edit field (you can move to a button and then click them)
+
+|Shotcut|Action|
+|q|quit|
+|f|Enter filter screen when in a list view|
 
 ## Support
 Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
