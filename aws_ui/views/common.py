@@ -96,7 +96,6 @@ class ResourceListView(u.LineBox):
         #self.lw.append(u.BoxAdapter(table, 100))
         for resource in self.resources:
             self.lw.append(u.Button("|".join(self.getRow(resource, headings))))
-            self.lw.append(u.Button(str(resource)))
             count += 1
         self.lw.append(u.Divider())
         self.lw.append(u.Text(f"TOTAL: {count}"))
