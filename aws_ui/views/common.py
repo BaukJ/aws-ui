@@ -2,6 +2,29 @@ import boto3
 import urwid as u
 from aws_ui.session import Session
 
+class ResourceDetailsView(u.ListBox):
+    def __init__(self, parent, resource):
+        self.parent = parent
+        self.resource = resource
+
+        self.lw = u.SimpleFocusListWalker([])
+        self.lw.append(u.Text("Resource Details")) # TODO: AttrMap colour
+        self.lw.append(u.Divider())
+        self.lw.append(u.Text("Tags:"))
+        for tag in resource.tags:
+            self.lw.append(u.Text(f"{tag['Key'].rjust(20)} = {tag['Value']}"))
+        self.lw.append(u.Divider())
+        self.lw.append(u.AttrWrap(u.Text("Hit Enter to return to the list"), "footer"))
+        super().__init__(self.lw)
+
+    def keypress(self, size, key):
+        if not super().keypress(size, key):
+            return
+        if key == "enter":
+            self.parent.openResouceList(refresh=False)
+        else:
+            return key
+
 class ResourceFilterView(u.ListBox):
     def __init__(self, parent, filters={}):
         self.parent = parent
@@ -25,17 +48,66 @@ class ResourceFilterView(u.ListBox):
             edit = u.Edit(name + ": ", value)
             self.sessionFilterEdits[name] = edit
             self.lw.append(edit)
+        self.addFilterEdit = u.Edit("Add filter: ", "tag:")
+        self.addFilterEditWrap = u.AttrWrap(self.addFilterEdit, "menu_item", "menu_item")
+        self.lw.append(self.addFilterEditWrap)
+        self.lw.append(u.Divider())
+        self.lw.append(u.AttrWrap(u.Text("Any filters with an empty value will be ignored"), "footer"))
+        self.lw.append(u.AttrWrap(u.Text("Hit Enter to return to apply the filers and return to the list"), "footer"))
         super().__init__(self.lw)
 
     def keypress(self, size, key):
-        if key == "enter":
-            for name, edit in self.filterEdits.items():
-                self.filters[name] = edit.edit_text
-            for name, edit in self.sessionFilterEdits.items():
-                self.session.filters[name] = edit.edit_text
-            self.parent.openResouceList()
+        if not super().keypress(size, key):
+            return
+        if key == "a":
+            pass
+        elif key == "enter":
+            if self.addFilterEditWrap in self.get_focus_widgets():
+                key = self.addFilterEdit.edit_text
+                edit = u.Edit(key+": ", "")
+                self.sessionFilterEdits[key] = edit
+                self.lw.insert(-4, edit)
+                self.addFilterEdit.edit_text = "tag:"
+            else:
+                for name, edit in self.filterEdits.items():
+                    self.filters[name] = edit.edit_text
+                for name, edit in self.sessionFilterEdits.items():
+                    self.session.filters[name] = edit.edit_text
+                self.parent.openResouceList()
         else:
-            return super().keypress(size, key)
+            return key
+
+
+class ResourceRow(u.Button):
+    def __init__(self, list_view, resource, headings):
+        super().__init__(self.getMessage(resource, headings))
+        self.resource = resource
+        u.connect_signal(self, 'click', list_view.openResouceDetails)
+
+    def getMessage(self, resource, headings):
+        row = []
+        for h in headings:
+            item = resource
+            for a in h["attribute"]:
+                if not item:
+                    pass
+                elif isinstance(a, str):
+                    if a.startswith("."):
+                        item = getattr(item, a[1:])
+                    elif a.startswith("#"):
+                        item = list(map(lambda i: i["Value"], filter(lambda i: i["Key"] == a[1:], item)))
+                        item = ",".join(item)
+                    else:
+                        item = item[a]
+                elif isinstance(a, int):
+                    item = item[a]
+                else:
+                    item = a(item)
+            item = str(item)
+            if "size" in h:
+                item = item[:h["size"]].ljust(h["size"])
+            row.append(item)
+        return "|".join(row)
 
 class ResourceListView(u.LineBox):
     def __init__(self):
@@ -50,7 +122,8 @@ class ResourceListView(u.LineBox):
         self.filters = self.session.resource_filters[self.resource_name]
         self.lw = u.SimpleFocusListWalker([])
         super().__init__(u.ListBox(self.lw))
-        self.updateView()
+        self.list_view = self._w
+        self.openResouceList()
 
     def keypress(self, size, key):
         # Have to invert this logic so that the downstream edits can get all the keystrokes first
@@ -64,13 +137,15 @@ class ResourceListView(u.LineBox):
             return key
 
     def openFilterEdit(self):
-        self.list_view = self._w
-        self.lw.clear()
-        self._w = ResourceFilterView(self, self.filters)
+        self._w = u.LineBox(ResourceFilterView(self, self.filters))
 
-    def openResouceList(self):
+    def openResouceDetails(self, widget):
+        self._w = u.LineBox(ResourceDetailsView(self, widget.resource))
+
+    def openResouceList(self, refresh=True):
+        if refresh:
+            self.updateView()
         self._w = self.list_view
-        self.updateView()
 
     def filterList(self):
         filters = []
@@ -95,7 +170,7 @@ class ResourceListView(u.LineBox):
         #    table.contents.append((u.Filler(u.Text(header), "top"), table.options("weight", 1)))
         #self.lw.append(u.BoxAdapter(table, 100))
         for resource in self.resources:
-            self.lw.append(u.Button("|".join(self.getRow(resource, headings))))
+            self.lw.append(ResourceRow(self, resource, headings))
             count += 1
         self.lw.append(u.Divider())
         self.lw.append(u.Text(f"TOTAL: {count}"))
@@ -136,34 +211,9 @@ class ResourceListView(u.LineBox):
             {
                 "title": "Name",
                 "attribute": [".tags", "#Name"],
-                "size": 30,
+                "size": 40,
             },
         ]
-
-    def getRow(self, resource, headings):
-        row = []
-        for h in headings:
-            item = resource
-            for a in h["attribute"]:
-                if not item:
-                    pass
-                elif isinstance(a, str):
-                    if a.startswith("."):
-                        item = getattr(item, a[1:])
-                    elif a.startswith("#"):
-                        item = list(map(lambda i: i["Value"], filter(lambda i: i["Key"] == a[1:], item)))
-                        item = ",".join(item)
-                    else:
-                        item = item[a]
-                elif isinstance(a, int):
-                    item = item[a]
-                else:
-                    item = a(item)
-            item = str(item)
-            if "size" in h:
-                item = item[:h["size"]].ljust(h["size"])
-            row.append(item)
-        return row
 
     def fetchResources(self):
         raise NotImplementedError("Needs to be replaced")
