@@ -33,8 +33,17 @@ class SnapshotListView(ResourceListView):
         ]
 
     def deleteAll(self, widget):
+        total = 0
+        for snapshot in self.resources:
+            total += 1
+        count = 0
+        pb = u.ProgressBar('pb', 'pb_complete', count, total)
+        self.lw.append(pb)
         for snapshot in self.resources:
             snapshot.delete()
+            count += 1
+            pb.set_completion(count)
+            self.session.loop.draw_screen()
         self.updateView()
 
     def actions(self):

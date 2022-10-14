@@ -7,6 +7,7 @@ import os
 import boto3
 import urwid as u
 import aws_ui.views
+from aws_ui.session import Session
 
 class NavBar(u.WidgetWrap):
     def __init__(self, menu, options, optionsCrumb=[]):
@@ -100,6 +101,8 @@ class App(object):
             ("menu_item_selected", "black",       "yellow"),
             ("header",             "white, bold", "dark green"),
             ("footer",             "white, bold", "dark red"),
+            ("pb",                 "white, bold", "dark red"),
+            ("pb_complete",        "white, bold", "dark green"),
         }
 
         self.menu = Menu({
@@ -118,6 +121,7 @@ class App(object):
             raise u.ExitMainLoop()
 
     def start(self):
+        Session.instance().loop = self.loop
         self.loop.run()
 
 def main():
