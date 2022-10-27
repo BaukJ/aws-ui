@@ -111,10 +111,6 @@ class ResourceRow(u.Button):
 
 class ResourceListView(u.LineBox):
     def __init__(self):
-        region = "eu-west-2"
-        self.ec2 = boto3.resource('ec2', region)
-        self.s3  = boto3.resource('s3', region)
-        self.asg = boto3.client('autoscaling', region)
         self.session = Session.instance()
         self.resource_name = type(self).__name__
         if not self.resource_name in self.session.resource_filters:
@@ -131,7 +127,7 @@ class ResourceListView(u.LineBox):
             return
         if key == "r":
             self.updateView()
-        elif key == "f":
+        elif key == "f" or key == "/":
             self.openFilterEdit()
         else:
             return key

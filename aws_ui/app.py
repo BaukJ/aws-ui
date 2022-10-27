@@ -111,6 +111,7 @@ class App(object):
                 "Volumes": aws_ui.views.VolumeListView,
                 "Snapshots": aws_ui.views.SnapshotListView,
                 "Autoscaling Groups": aws_ui.views.ASGListView,
+                "S3": aws_ui.views.S3ListView,
             },
         })
         frame = self.menu

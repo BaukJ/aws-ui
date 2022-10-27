@@ -2,6 +2,7 @@ from .common import *
 
 class InstanceListView(ResourceListView):
     def __init__(self):
+        self.ec2 = boto3.resource('ec2', Session.instance().region)
         super().__init__()
 
     def fetchResources(self):

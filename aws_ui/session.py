@@ -9,6 +9,7 @@ class Session(object):
             "tag:Name": "*",
         }
         self.resource_filters = {}
+        self.region = "eu-west-2"
 
     @classmethod
     def instance(cls):

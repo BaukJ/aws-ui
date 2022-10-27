@@ -2,6 +2,7 @@ from .common import *
 
 class SnapshotListView(ResourceListView):
     def __init__(self):
+        self.ec2 = boto3.resource('ec2', Session.instance().region)
         super().__init__()
 
     def fetchResources(self):
@@ -38,7 +39,7 @@ class SnapshotListView(ResourceListView):
             total += 1
         count = 0
         pb = u.ProgressBar('pb', 'pb_complete', count, total)
-        self.lw.append(pb)
+        self.lw.insert(-1, pb)
         for snapshot in self.resources:
             snapshot.delete()
             count += 1

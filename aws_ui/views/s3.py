@@ -1,26 +1,23 @@
 from .common import *
 
-class VolumeListView(ResourceListView):
+class S3ListView(ResourceListView):
     def __init__(self):
+        self.s3 = boto3.resource('s3', Session.instance().region)
         super().__init__()
 
     def fetchResources(self):
-        self.resources = self.s3.volumes.filter(Filters=self.filterList())
+        # Although this filter function does exist, it does not actually do any filtering
+        #self.resources = self.s3.buckets.filter(Filters=self.filterList())
+        self.resources = self.s3.buckets.all()
 
     def defaultFilters(self):
-        return {
-            "status": "available",
-        }
+        return {}
 
     def getHeadings(self):
-        return super().getHeadings() + [
+        return [
             {
-                "title": "Created",
-                "attribute": [".create_time"],
-            },
-            {
-                "title": "State",
-                "attribute": [".state"],
+                "title": "Name",
+                "attribute": [".name"],
             },
         ]
 

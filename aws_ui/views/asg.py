@@ -2,6 +2,7 @@ from .common import *
 
 class ASGListView(ResourceListView):
     def __init__(self):
+        self.asg = boto3.client('autoscaling', Session.instance().region)
         super().__init__()
 
     def fetchResources(self):
