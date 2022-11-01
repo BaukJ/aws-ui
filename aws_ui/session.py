@@ -5,10 +5,11 @@ class Session(object):
         raise RuntimeError('Call instance() instead')
 
     def init(self):
-        self.filters = {
+        self.filters = {                   # Shared AWS filters accross all resources
             "tag:Name": "*",
         }
-        self.resource_filters = {}
+        self.resource_filters = {}         # Used to apply filters to resources (AWS side)
+        self.resource_custom_filters = {}  # Used to apply extra filters that are not part of the available AWS filters (usually client side)
         self.region = "eu-west-2"
 
     @classmethod

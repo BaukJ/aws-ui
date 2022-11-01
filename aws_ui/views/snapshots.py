@@ -6,13 +6,31 @@ class SnapshotListView(ResourceListView):
         super().__init__()
 
     def fetchResources(self):
-        self.resources = self.ec2.snapshots.filter(
-            Filters=self.filterList(),
+        filters = self.filterList()
+        all_resources = self.ec2.snapshots.filter(
+            Filters=filters,
             OwnerIds=["self"],
         )
+        age = ""
+        if len(self.custom_filters["age"]) > 0:
+            age = self.custom_filters["age"][1:]
+            age_comparison = self.custom_filters["age"][0]
 
-    def defaultFilters(self):
+        self.resources = []
+        for resource in all_resources:
+            start_time = str(resource.start_time)
+            if age == "" \
+            or (age_comparison == ">" and start_time > age) \
+            or (age_comparison == "<" and start_time < age) \
+            or (age_comparison == "=" and start_time.startsWith(age)):
+                self.resources.append(resource)
+        self.resources.sort(key=lambda r: r.start_time)
+
+    def customFilters(self):
         return {
+            "age": {
+                "default": ">2022"
+            }
         }
 
     def getHeadings(self):
@@ -24,7 +42,7 @@ class SnapshotListView(ResourceListView):
             {
                 "title": "Start Time",
                 "attribute": [".start_time"],
-                "size": 10,
+                "size": 16,
             },
             {
                 "title": "Description",

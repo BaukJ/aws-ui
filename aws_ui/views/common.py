@@ -26,28 +26,41 @@ class ResourceDetailsView(u.ListBox):
             return key
 
 class ResourceFilterView(u.ListBox):
-    def __init__(self, parent, filters={}):
+    def __init__(self, parent):
         self.parent = parent
-        self.filters = filters
-        self.lw = u.SimpleFocusListWalker([])
-        self.lw.append(u.Text("Filters")) # TODO: AttrMap colour
-        self.lw.append(u.Divider())
-        self.filterEdits = {}
-        self.sessionFilterEdits = {}
         self.session = Session.instance()
+        self.resource_name = parent.resource_name
 
-        self.lw.append(u.Text("Resource specific Filters:"))
-        for name, value in sorted(filters.items()):
-            edit = u.Edit(name + ": ", value)
-            self.filterEdits[name] = edit
-            self.lw.append(edit)
+        self.filterEdits = {}
+        self.customFilterEdits = {}
+        self.sessionFilterEdits = {}
+
+        self.lw = u.SimpleFocusListWalker([])
+        self.lw.append(u.Padding(u.AttrWrap(u.Text(" Filters "), "title"), "center", "pack"))
         self.lw.append(u.Divider())
+
+        if self.session.resource_custom_filters.get(self.resource_name):
+            self.lw.append(u.Text("Custom Resource Filters:"))
+            for name, value in sorted(self.session.resource_custom_filters[self.resource_name].items()):
+                edit = u.Edit(name + ": ", value)
+                self.customFilterEdits[name] = edit
+                self.lw.append(edit)
+            self.lw.append(u.Divider())
+
+        if self.session.resource_filters.get(self.resource_name):
+            self.lw.append(u.Text("Resource specific Filters:"))
+            for name, value in sorted(self.session.resource_filters[self.resource_name].items()):
+                edit = u.Edit(name + ": ", value)
+                self.filterEdits[name] = edit
+                self.lw.append(edit)
+            self.lw.append(u.Divider())
 
         self.lw.append(u.Text("Session Filters:"))
         for name, value in sorted(self.session.filters.items()):
             edit = u.Edit(name + ": ", value)
             self.sessionFilterEdits[name] = edit
             self.lw.append(edit)
+
         self.addFilterEdit = u.Edit("Add filter: ", "tag:")
         self.addFilterEditWrap = u.AttrWrap(self.addFilterEdit, "menu_item", "menu_item")
         self.lw.append(self.addFilterEditWrap)
@@ -69,8 +82,10 @@ class ResourceFilterView(u.ListBox):
                 self.lw.insert(-4, edit)
                 self.addFilterEdit.edit_text = "tag:"
             else:
+                for name, edit in self.customFilterEdits.items():
+                    self.session.resource_custom_filters[self.resource_name][name] = edit.edit_text
                 for name, edit in self.filterEdits.items():
-                    self.filters[name] = edit.edit_text
+                    self.session.resource_filters[self.resource_name][name] = edit.edit_text
                 for name, edit in self.sessionFilterEdits.items():
                     self.session.filters[name] = edit.edit_text
                 self.parent.openResouceList()
@@ -78,11 +93,12 @@ class ResourceFilterView(u.ListBox):
             return key
 
 
-class ResourceRow(u.Button):
+class ResourceRow(u.AttrWrap):
     def __init__(self, list_view, resource, headings):
-        super().__init__(self.getMessage(resource, headings))
+        self.button = u.Button(self.getMessage(resource, headings))
+        super().__init__(self.button, "row", "row_selected")
         self.resource = resource
-        u.connect_signal(self, 'click', list_view.openResouceDetails)
+        u.connect_signal(self.button, 'click', list_view.openResouceDetails)
 
     def getMessage(self, resource, headings):
         row = []
@@ -115,7 +131,12 @@ class ResourceListView(u.LineBox):
         self.resource_name = type(self).__name__
         if not self.resource_name in self.session.resource_filters:
             self.session.resource_filters[self.resource_name] = self.defaultFilters()
+        if not self.resource_name in self.session.resource_custom_filters:
+            self.session.resource_custom_filters[self.resource_name] = {}
+            for k, v in self.customFilters().items():
+                self.session.resource_custom_filters[self.resource_name][k] = v.get("default", "")
         self.filters = self.session.resource_filters[self.resource_name]
+        self.custom_filters = self.session.resource_custom_filters[self.resource_name]
         self.lw = u.SimpleFocusListWalker([])
         super().__init__(u.ListBox(self.lw))
         self.list_view = self._w
@@ -133,7 +154,7 @@ class ResourceListView(u.LineBox):
             return key
 
     def openFilterEdit(self):
-        self._w = u.LineBox(ResourceFilterView(self, self.filters))
+        self._w = u.LineBox(ResourceFilterView(self))
 
     def openResouceDetails(self, widget):
         self._w = u.LineBox(ResourceDetailsView(self, widget.resource))
@@ -216,3 +237,12 @@ class ResourceListView(u.LineBox):
 
     def defaultFilters(self):
         return {}
+
+    def customFilters(self):
+        return {}
+        # e.g:
+        # {
+        #   date: {
+        #     default: "",  # optional
+        #   }
+        # }
