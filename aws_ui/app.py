@@ -105,6 +105,7 @@ class App(object):
             ("title",              "white, bold", "dark green"),
             ("footer",             "white, bold", "dark red"),
             ("pb",                 "white, bold", "dark red"),
+            ("pb_smooth",          "white, bold", "brown"),
             ("pb_complete",        "white, bold", "dark green"),
         }
 

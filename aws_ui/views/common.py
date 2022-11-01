@@ -93,11 +93,15 @@ class ResourceFilterView(u.ListBox):
             return key
 
 
+class ResourceRowButton(u.Button):
+    def __init__(self, resource, message):
+        self.resource = resource
+        super().__init__(message)
+
 class ResourceRow(u.AttrWrap):
     def __init__(self, list_view, resource, headings):
-        self.button = u.Button(self.getMessage(resource, headings))
+        self.button = ResourceRowButton(resource, self.getMessage(resource, headings))
         super().__init__(self.button, "row", "row_selected")
-        self.resource = resource
         u.connect_signal(self.button, 'click', list_view.openResouceDetails)
 
     def getMessage(self, resource, headings):

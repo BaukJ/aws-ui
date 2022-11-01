@@ -1,4 +1,6 @@
 from .common import *
+import datetime
+import time
 
 class SnapshotListView(ResourceListView):
     def __init__(self):
@@ -56,14 +58,22 @@ class SnapshotListView(ResourceListView):
         for snapshot in self.resources:
             total += 1
         count = 0
+        start_time = time.perf_counter()
+        description = u.Text(f"{count}/{total} [0]")
         pb = u.ProgressBar('pb', 'pb_complete', count, total)
+
+        self.lw.insert(-1, u.AttrWrap(u.Padding(description, "center", "pack"), "pb_complete"))
         self.lw.insert(-1, pb)
+
         for snapshot in self.resources:
             snapshot.delete()
             count += 1
             pb.set_completion(count)
             self.session.loop.draw_screen()
+            time_taken = datetime.timedelta(seconds=(time.perf_counter() - start_time))
+            description.set_text(f"Deleted {count}/{total} [{time_taken}]")
         self.updateView()
+        self.lw.insert(0, u.AttrWrap(u.Padding(description, "center", "pack"), "pb_complete"))
 
     def actions(self):
         return {
