@@ -29,16 +29,6 @@ class InstanceListView(ResourceListView):
         self.resources.stop()
         self.updateView()
 
-    def actionButtons(self):
-        delete = u.Button("DELETE ALL")
-        u.connect_signal(delete, 'click', self.terminateAll)
-        stop = u.Button("STOP ALL")
-        u.connect_signal(stop, 'click', self.stopAll)
-        return [
-            u.Button("DUMMY"),
-            delete,
-            stop,
-        ]
     def actions(self):
         return {
             "delete": self.terminateAll,

@@ -154,6 +154,8 @@ class ResourceListView(u.LineBox):
             self.updateView()
         elif key == "f" or key == "/":
             self.openFilterEdit()
+        elif key == "enter" and self.actionEdit in self.list_view.get_focus_widgets():
+            self.confirmAction()
         else:
             return key
 
@@ -193,20 +195,21 @@ class ResourceListView(u.LineBox):
         for resource in self.resources:
             self.lw.append(ResourceRow(self, resource, headings))
             count += 1
+
+        if count == 0:
+            self.lw.append(u.AttrWrap(u.Button("NO RESOURCES FOUND"), "menu_item", "menu_item_selected"))
+
         self.lw.append(u.Divider())
         self.lw.append(u.Text(f"TOTAL: {count}"))
         self.lw.append(u.Divider())
-        #for action in self.actionButtons():
-        #    self.lw.append(action)
+
+        # Add actions
         self.actionEdit = u.Edit(f"Action [{'/'.join(self.actions().keys())}]: ")
         self.lw.append(self.actionEdit)
-        self.actionButton = u.Button("CONFIRM")
-        u.connect_signal(self.actionButton, 'click', self.confirmAction)
-        self.lw.append(u.AttrWrap(self.actionButton, None, "menu_item_selected"))
         #for action in self.actions():
         #    self.lw.append(action)
 
-    def confirmAction(self, widget):
+    def confirmAction(self):
         action = self.actionEdit.edit_text
         self.updateView(fetch=False)
         if action in self.actions():
