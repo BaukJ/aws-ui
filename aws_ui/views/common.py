@@ -1,5 +1,7 @@
 import boto3
 import urwid as u
+import datetime
+import time
 from aws_ui.session import Session
 
 class ResourceDetailsView(u.ListBox):
@@ -253,3 +255,30 @@ class ResourceListView(u.LineBox):
         #     default: "",  # optional
         #   }
         # }
+
+    # Progress Bar for list view
+    class ProgressBar():
+        def __init__(self, parent):
+            self.total = 0
+            self.count = 0
+            for r in parent.resources:
+                self.total += 1
+            self.parent = parent
+            self.start_time = time.perf_counter()
+            self.pb = u.ProgressBar('pb', 'pb_complete', 0, self.total)
+            self.description = u.Text(f"0/{self.total} [0]")
+            self.parent.lw.insert(-1, u.AttrWrap(u.Padding(self.description, "center", "pack"), "pb_complete"))
+            self.parent.lw.insert(-1, self.pb)
+
+        def updateCount(self, count):
+            self.count = count
+            self.pb.set_completion(count)
+            time_taken = datetime.timedelta(seconds=(time.perf_counter() - self.start_time))
+            self.description.set_text(f"Deleted {count}/{self.total} [{time_taken}]")
+            self.parent.session.loop.draw_screen()
+
+        def incrementCount(self):
+            self.updateCount(self.count + 1)
+
+        def insertCompletion(self):
+            self.parent.lw.insert(0, u.AttrWrap(u.Padding(self.description, "center", "pack"), "pb_complete"))

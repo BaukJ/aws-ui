@@ -26,9 +26,13 @@ class VolumeListView(ResourceListView):
         ]
 
     def deleteAll(self, widget):
+        pb = self.ProgressBar(self)
+
         for r in self.resources:
             r.delete()
+            pb.incrementCount()
         self.updateView()
+        pb.insertCompletion()
 
     def actionButtons(self):
         delete = u.Button("DELETE ALL")
