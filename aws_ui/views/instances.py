@@ -19,6 +19,11 @@ class InstanceListView(ResourceListView):
                 "title": "State",
                 "attribute": [".state", "Name"],
             },
+            {
+                "title": "Launched",
+                "attribute": [".launch_time"],
+                "size": 16,
+            },
         ]
 
     def terminateAll(self, widget):
