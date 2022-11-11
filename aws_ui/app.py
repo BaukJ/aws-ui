@@ -5,6 +5,7 @@ import datetime
 import os
 # External
 import boto3
+import click
 import urwid as u
 import aws_ui.views
 from aws_ui.session import Session
@@ -129,6 +130,10 @@ class App(object):
         Session.instance().loop = self.loop
         self.loop.run()
 
-def main():
+@click.command()
+@click.option('--profile', '-p', help='AWS Profile to use')
+def main(profile=None):
+    if profile:
+        os.environ['AWS_PROFILE'] = profile
     app = App()
     app.start()
