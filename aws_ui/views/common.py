@@ -3,6 +3,8 @@ import urwid as u
 import datetime
 import time
 from aws_ui.session import Session
+import logging
+logging.basicConfig(filename='aws_ui.log', level=logging.WARN)
 
 class ResourceDetailsView(u.ListBox):
     def __init__(self, parent, resource):
@@ -164,6 +166,21 @@ class ResourceListView(u.LineBox):
     def openFilterEdit(self):
         self._w = u.LineBox(ResourceFilterView(self))
 
+    def showError(self, error=None):
+        if error == None:
+            try:
+                error = self.errorText.get_text()[0]
+            except AttributeError:
+                return
+        logging.error(f"{error}")
+        try:
+            self.errorText.set_text(error)
+        except AttributeError:
+            self.errorText = u.Text(error)
+            self.errorTextWrapper = u.AttrWrap(self.errorText, "footer")
+        if not self.errorTextWrapper in self.lw:
+            self.lw.insert(-1, self.errorTextWrapper)
+
     def openResouceDetails(self, widget):
         self._w = u.LineBox(ResourceDetailsView(self, widget.resource))
 
@@ -261,6 +278,7 @@ class ResourceListView(u.LineBox):
         def __init__(self, parent):
             self.total = 0
             self.count = 0
+            self.errors = 0
             for r in parent.resources:
                 self.total += 1
             self.parent = parent
@@ -274,11 +292,19 @@ class ResourceListView(u.LineBox):
             self.count = count
             self.pb.set_completion(count)
             time_taken = datetime.timedelta(seconds=(time.perf_counter() - self.start_time))
-            self.description.set_text(f"Deleted {count}/{self.total} [{time_taken}]")
+            message = f"{count}/{self.total} [{time_taken}]"
+            if self.errors > 0:
+                message += f" - {self.errors} Errors"
+            self.description.set_text(message)
             self.parent.session.loop.draw_screen()
 
         def incrementCount(self):
             self.updateCount(self.count + 1)
 
+        def incrementErrors(self):
+            self.errors += 1
+
         def insertCompletion(self):
             self.parent.lw.insert(0, u.AttrWrap(u.Padding(self.description, "center", "pack"), "pb_complete"))
+            if self.errors > 0:
+                self.parent.showError()

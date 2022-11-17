@@ -115,6 +115,7 @@ class App(object):
                 "Instances": aws_ui.views.InstanceListView,
                 "Volumes": aws_ui.views.VolumeListView,
                 "Snapshots": aws_ui.views.SnapshotListView,
+                "Images": aws_ui.views.ImageListView,
                 "Autoscaling Groups": aws_ui.views.ASGListView,
                 "S3": aws_ui.views.S3ListView,
             },

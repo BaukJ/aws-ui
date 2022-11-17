@@ -1,4 +1,6 @@
 from .common import *
+import botocore
+import datetime
 
 class SnapshotListView(ResourceListView):
     def __init__(self):
@@ -11,25 +13,25 @@ class SnapshotListView(ResourceListView):
             Filters=filters,
             OwnerIds=["self"],
         )
-        age = ""
-        if len(self.custom_filters["age"]) > 0:
-            age = self.custom_filters["age"][1:]
-            age_comparison = self.custom_filters["age"][0]
+        created = ""
+        if len(self.custom_filters["created"]) > 0:
+            created = self.custom_filters["created"][1:]
+            created_comparison = self.custom_filters["created"][0]
 
         self.resources = []
         for resource in all_resources:
             start_time = str(resource.start_time)
-            if age == "" \
-            or (age_comparison == ">" and start_time > age) \
-            or (age_comparison == "<" and start_time < age) \
-            or (age_comparison == "=" and start_time.startsWith(age)):
+            if created == "" \
+            or (created_comparison == ">" and start_time > created) \
+            or (created_comparison == "<" and start_time < created) \
+            or (created_comparison == "=" and start_time.startswith(created)):
                 self.resources.append(resource)
         self.resources.sort(key=lambda r: r.start_time)
 
     def customFilters(self):
         return {
-            "age": {
-                "default": ">2022"
+            "created": {
+                "default": f"={datetime.datetime.today().strftime('%Y-%m-%d')}"
             }
         }
 
@@ -55,7 +57,11 @@ class SnapshotListView(ResourceListView):
         pb = self.ProgressBar(self)
 
         for snapshot in self.resources:
-            snapshot.delete()
+            try:
+                snapshot.delete()
+            except botocore.exceptions.ClientError as e:
+                self.showError(str(e))
+                pb.incrementErrors()
             pb.incrementCount()
         self.updateView()
         pb.insertCompletion()
