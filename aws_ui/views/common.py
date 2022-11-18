@@ -12,13 +12,18 @@ class ResourceDetailsView(u.ListBox):
         self.resource = resource
 
         self.lw = u.SimpleFocusListWalker([])
-        self.lw.append(u.Text("Resource Details")) # TODO: AttrMap colour
+        self.lw.append(u.AttrWrap(u.Text("Resource Details"), "header"))
         self.lw.append(u.Divider())
-        self.lw.append(u.Text("Tags:"))
+        self.lw.append(u.AttrWrap(u.Text("Tags:"), "sub_header"))
         for tag in resource.tags:
             self.lw.append(u.Text(f"{tag['Key'].rjust(20)} = {tag['Value']}"))
         self.lw.append(u.Divider())
         self.lw.append(u.AttrWrap(u.Text("Hit Enter to return to the list"), "footer"))
+        self.lw.append(u.Divider())
+        self.lw.append(u.AttrWrap(u.Text("Raw Data:"), "sub_header"))
+        for k, v in resource.meta.data.items():
+            if k == "Tags": continue
+            self.lw.append(u.Text(f"{k} = {v}"))
         super().__init__(self.lw)
 
     def keypress(self, size, key):

@@ -103,6 +103,7 @@ class App(object):
             ("row",                "",            ""),
             ("row_selected",       "bold",        ""),
             ("header",             "white, bold", "dark green"),
+            ("sub_header",         "white", "dark green"),
             ("title",              "white, bold", "dark green"),
             ("footer",             "white, bold", "dark red"),
             ("pb",                 "white, bold", "dark red"),
