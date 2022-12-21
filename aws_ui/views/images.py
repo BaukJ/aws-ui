@@ -64,6 +64,7 @@ class ImageListView(ResourceListView):
 
         for r in self.resources:
             try:
+                logging.warn(f"DEREGISTERING: {r.id}")
                 r.deregister()
             except botocore.exceptions.ClientError as e:
                 self.showError(str(e))

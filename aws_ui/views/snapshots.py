@@ -57,9 +57,11 @@ class SnapshotListView(ResourceListView):
         pb = self.ProgressBar(self)
 
         for snapshot in self.resources:
+            logging.warn(f"DELETING: {snapshot.id}")
             try:
                 snapshot.delete()
             except botocore.exceptions.ClientError as e:
+                logging.warn(f"FAILED TO DELETE: {r.id}")
                 self.showError(str(e))
                 pb.incrementErrors()
             pb.incrementCount()

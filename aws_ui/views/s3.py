@@ -23,6 +23,7 @@ class S3ListView(ResourceListView):
 
     def deleteAll(self, widget):
         for r in self.resources:
+            logging.warn(f"DELETING: {r.id}")
             r.delete()
         self.updateView()
 

@@ -31,6 +31,9 @@ class InstanceListView(ResourceListView):
         ]
 
     def terminateAll(self, widget):
+        for r in self.resources:
+            logging.warn(f"MASS DELETING: {r.id}")
+        logging.warn("MASS DELETING THE ABOVE...")
         self.resources.terminate()
         self.updateView()
 

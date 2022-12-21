@@ -29,6 +29,7 @@ class VolumeListView(ResourceListView):
         pb = self.ProgressBar(self)
 
         for r in self.resources:
+            logging.warn(f"DELETING: {r.id}")
             r.delete()
             pb.incrementCount()
         self.updateView()

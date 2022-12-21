@@ -24,6 +24,7 @@ class ASGListView(ResourceListView):
     def deleteAll(self, widget):
         for r in self.resources:
             r.delete()
+            logging.warn(f"DELETING: {r.id}")
         self.updateView()
 
     def actionButtons(self):
