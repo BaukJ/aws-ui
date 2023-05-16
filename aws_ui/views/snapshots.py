@@ -61,7 +61,7 @@ class SnapshotListView(ResourceListView):
             try:
                 snapshot.delete()
             except botocore.exceptions.ClientError as e:
-                logging.warn(f"FAILED TO DELETE: {r.id}")
+                logging.warn(f"FAILED TO DELETE: {snapshot.id}")
                 self.showError(str(e))
                 pb.incrementErrors()
             pb.incrementCount()
