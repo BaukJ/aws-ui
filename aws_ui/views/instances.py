@@ -11,6 +11,7 @@ class InstanceListView(ResourceListView):
     def defaultFilters(self):
         return {
             "instance-state-name": "stopped,running",
+            "launch-time": f"{datetime.datetime.today().strftime('%Y-%m-%d')}T*",
         }
 
     def getHeadings(self):
